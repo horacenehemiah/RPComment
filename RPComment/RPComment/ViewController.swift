@@ -20,7 +20,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
-        operations.getComments()
+        getComments()
     }
 
     override func didReceiveMemoryWarning() {
@@ -46,6 +46,27 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
 
     @IBAction func comment(_ sender: Any) {
         operations.storeComment(commentTextView)
+    }
+    
+    func getComments() {
+        FIRDatabase.database().reference().observe(FIRDataEventType.value, with: {
+            (snapshot) in
+            
+            self.rpComments = []
+            
+            if let snapshots = snapshot.children.allObjects as? [FIRDataSnapshot] {
+                
+                for snap in snapshots {
+                    if let commentDictionary = snap.value as? Dictionary<String, AnyObject> {
+                        let key = snap.key
+                        let comment = RPComment(key: key, dictionary: commentDictionary)
+                        self.rpComments.insert(comment, at: 0)
+                        print("Comments: ", self.rpComments)
+                    }
+                }
+            }
+            self.tableView.reloadData()
+        })
     }
 
 }
